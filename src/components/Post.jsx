@@ -1,3 +1,6 @@
+import React, { useState } from 'react';  // Make sure this line is at the top
+import { isAdmin } from '../utils/adminUtils';
+
 const Post = ({ post, onVote, userVotes, onDelete, onEdit, onHighlight }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(post.content);
