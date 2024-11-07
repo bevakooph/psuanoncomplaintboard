@@ -118,7 +118,7 @@ function App() {
             <div className="max-w-6xl mx-auto px-4 pb-24">
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-bold text-gray-800">
-                        Anonymous Bulletin Board
+                        PSU Anon Complaint Board
                     </h1>
                     {isAdmin() ? (
                         <button
