@@ -1,7 +1,6 @@
-// src/utils/adminUtils.js
 const ADMIN_CREDENTIALS = {
-    username: 'sparsh',  // Change these credentials
-    password: 'sparsh11'  // to your preferred values
+    username: import.meta.env.VITE_ADMIN_USERNAME,
+    password: import.meta.env.VITE_ADMIN_PASSWORD
 };
 
 function generateToken() {
@@ -9,7 +8,7 @@ function generateToken() {
 }
 
 function isValidToken(token) {
-    return !!token; // In a real app, you'd want more robust token validation
+    return !!token;
 }
 
 function getStoredToken() {
