@@ -4,6 +4,8 @@ import PostComposer from './components/PostComposer';
 import SortingControls from './components/SortingControls';
 import { sortPosts } from './utils/sortingUtils';
 import { isAdmin, loginAdmin, clearStoredToken } from './utils/adminUtils';
+import { collection, addDoc, onSnapshot, updateDoc, doc, query, orderBy } from 'firebase/firestore';
+import { db } from './firebase';
 
 function App() {
     // All state definitions at the top
@@ -46,36 +48,59 @@ function App() {
         }
     }, []);
 
-    // Handlers
-    const handleVote = (postId, value) => {
-        const currentVote = userVotes[postId] || 0;
-        if (currentVote !== value) {
-            setPosts(posts.map(post => {
-                if (post.id === postId) {
-                    return {
-                        ...post,
-                        upvotes: value === 1 ? post.upvotes + (currentVote === -1 ? 1 : 1) :
-                            value === -1 ? post.upvotes - (currentVote === 1 ? 1 : 0) : post.upvotes,
-                        downvotes: value === -1 ? post.downvotes + (currentVote === 1 ? 1 : 1) :
-                            value === 1 ? post.downvotes - (currentVote === -1 ? 1 : 0) : post.downvotes
-                    };
-                }
-                return post;
+    useEffect(() => {
+        const q = query(collection(db, 'posts'), orderBy('timestamp', 'desc'));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const newPosts = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
             }));
-            setUserVotes({ ...userVotes, [postId]: value });
+            setPosts(newPosts);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    // Save user votes to localStorage
+    useEffect(() => {
+        localStorage.setItem('userVotes', JSON.stringify(userVotes));
+    }, [userVotes]);
+
+    const handleNewPost = async (content) => {
+        try {
+            await addDoc(collection(db, 'posts'), {
+                content,
+                timestamp: Date.now(),
+                upvotes: 0,
+                downvotes: 0,
+                highlighted: false
+            });
+        } catch (error) {
+            console.error("Error adding post: ", error);
         }
     };
 
-    const handleNewPost = (content) => {
-        const newPost = {
-            id: Date.now(),
-            content,
-            timestamp: Date.now(),
-            upvotes: 0,
-            downvotes: 0,
-            highlighted: false
-        };
-        setPosts([newPost, ...posts]);
+    const handleVote = async (postId, value) => {
+        const currentVote = userVotes[postId] || 0;
+        if (currentVote !== value) {
+            try {
+                const postRef = doc(db, 'posts', postId);
+                const post = posts.find(p => p.id === postId);
+                
+                await updateDoc(postRef, {
+                    upvotes: value === 1 ? 
+                        post.upvotes + (currentVote === -1 ? 1 : 1) : 
+                        post.upvotes - (currentVote === 1 ? 1 : 0),
+                    downvotes: value === -1 ? 
+                        post.downvotes + (currentVote === 1 ? 1 : 1) : 
+                        post.downvotes - (currentVote === -1 ? 1 : 0)
+                });
+
+                setUserVotes({...userVotes, [postId]: value});
+            } catch (error) {
+                console.error("Error updating vote: ", error);
+            }
+        }
     };
 
     const handleDelete = (postId) => {
