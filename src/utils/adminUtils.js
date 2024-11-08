@@ -3,12 +3,6 @@ const ADMIN_CREDENTIALS = {
     password: import.meta.env.VITE_ADMIN_PASSWORD
 };
 
-console.log("Username from env:", import.meta.env.VITE_ADMIN_USERNAME);
-console.log("Password from env:", import.meta.env.VITE_ADMIN_PASSWORD);
-console.log("Stored Username:", ADMIN_CREDENTIALS.username);
-console.log("Stored Password:", ADMIN_CREDENTIALS.password);
-
-
 function generateToken() {
     return Math.random().toString(36).substring(2) + Date.now().toString(36);
 }
